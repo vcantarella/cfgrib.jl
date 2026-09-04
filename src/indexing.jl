@@ -1,6 +1,7 @@
 using DataStructures
 using GRIB
 using Serialization
+using SHA
 
 
 export FileIndex
@@ -61,10 +62,11 @@ Base.getindex(obj::FileIndex, key) = obj.header_values[key]
 
 
 function index_path(index::FileIndex)
-    index_keys_hash = hash(
+    #  SHA rather than `hash`, so the cache file name is the same on every
+    #  Julia version
+    index_keys_hash = bytes2hex(sha1(
         join([index.index_keys..., index.allowed_protocol_version])
-    )
-    index_keys_hash = string(index_keys_hash, base=16)
+    ))[1:16]
 
     return "$(index.grib_path).$index_keys_hash.idx"
 end

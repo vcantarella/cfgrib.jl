@@ -57,9 +57,9 @@ dfi = dummy_file_index()
 @test ! isdefined(dfi, :header_values)
 @test ! isdefined(dfi, :filter_by_keys)
 
-#  Will fail on version change
+#  Stable across Julia versions, changes only with the keys or protocol version
 CfGRIB.index_path!(dfi)
-@test dfi.index_path == "./dummy-path.grib.60099cfb35e25e30.idx"
+@test dfi.index_path == "./dummy-path.grib.7282912749778f4b.idx"
 
 CfGRIB.get_header_values!(dfi)
 expected_header_values = OrderedDict(
