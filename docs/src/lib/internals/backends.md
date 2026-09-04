@@ -1,7 +1,3 @@
-```@meta
-Author = "Robert Rosca"
-```
-
 # [Backends](@id lib_backends)
 
 CfGRIB.jl has a flexible backend system built in to allow for multiple ways to

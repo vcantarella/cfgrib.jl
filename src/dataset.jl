@@ -76,6 +76,9 @@ function Base.getindex(obj::OnDiskArray, key...)
             offset_message_index = findfirst(message_length_cumsum .> offset) - 1
             seek(file, offset_message_index)
             message = Message(file)
+            #  Decode missing points as our indicator value, mirrors upstream
+            #  cfgrib which sets this on every message it opens
+            message["missingValue"] = obj.missing_value
             values = message["values"]
             array_field[array_field_indexes..., geo_ndim_idx...] = values
         end
@@ -101,11 +104,11 @@ Base.@kwdef struct Variable
     data::Union{Number,Array,OnDiskArray}
 
     "Dictionary containing metadata for the variable, typically the units, the long name, and the standard name"
-    attributes::Dict{String,Any}
+    attributes::OrderedDict{String,Any}
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    Variable(dimensions, data, attributes) = new(dimensions, data, attributes)
+    Variable(dimensions, data, attributes) = new(dimensions, data, OrderedDict{String,Any}(attributes))
 end
 
 function Base.:(==)(a::Variable, b::Variable)
@@ -123,7 +126,7 @@ struct DataSet
     dimensions::OrderedDict{String,Int}
 
     "`OrderedDict{String,CfGRIB.Variable}` of `\$DIMENSION_NAME => \$DIMENSION_VARIABLE`, where the the variable is a [`Variable`](@ref Variable)."
-    variables::OrderedDict{String,CfGRIB.Variable}
+    variables::OrderedDict{String, Variable} # CfGRIB.Variable
 
     "`OrderedDict{String,Any}` containing some metadata extracted from the file."
     attributes::OrderedDict{String,Any}
@@ -335,6 +338,27 @@ function encode_cf_first(
 end
 
 
+"""
+Read `extra_keys` from the first message of the (filtered) index, keeping
+`"unknown"` values and without enforcing uniqueness, mirroring upstream
+cfgrib's `read_data_var_attrs`.
+"""
+function read_data_var_attrs(index::FileIndex, extra_keys)
+    message = first(index)
+    message["missingValue"] = MISSING_VALUE_INDICATOR
+
+    attributes = OrderedDict()
+    for key in extra_keys
+        value = read_message(message, key)
+        if !ismissing(value)
+            attributes["GRIB_" * key] = value
+        end
+    end
+
+    return attributes
+end
+
+
 #  TODO: Add filter_by_keys
 function build_variable_components(
     index::FileIndex;
@@ -344,14 +368,11 @@ function build_variable_components(
     read_keys::Array{String,1}=String[],
     time_dims::Tuple{Vararg{String}}=("time", "step"),
 )
-    data_var_attrs_keys = CfGRIB.DATA_ATTRIBUTES_KEYS
-    data_var_attrs_keys = [
-        data_var_attrs_keys;
-        get(CfGRIB.GRID_TYPE_MAP, index["gridType"][1], [])
-    ]
-    data_var_attrs_keys = [data_var_attrs_keys; read_keys]
+    data_var_attrs = enforce_unique_attributes(index, CfGRIB.DATA_ATTRIBUTES_KEYS)
 
-    data_var_attrs = enforce_unique_attributes(index, data_var_attrs_keys)
+    grid_type_keys = get(CfGRIB.GRID_TYPE_MAP, index["gridType"][1], [])
+    extra_keys = sort([read_keys; CfGRIB.EXTRA_DATA_ATTRIBUTES_KEYS; grid_type_keys])
+    merge!(data_var_attrs, read_data_var_attrs(index, extra_keys))
 
     coords_map = encode_cf_first(data_var_attrs, encode_cf, time_dims)
 
@@ -361,8 +382,7 @@ function build_variable_components(
     for coord_key in coords_map
         values = index[coord_key]
         if length(values) == 1 && ismissing(values[1])
-            #  TODO: Add logging
-            @warn "Missing from GRIB Stream $(coord_key)"
+            @debug "Missing from GRIB Stream $(coord_key)"
             continue
         end
 
@@ -434,7 +454,7 @@ function build_variable_components(
         offsets[Tuple(header_indexes)] = offset
     end
 
-    missing_value = get(data_var_attrs, "missingValue", 9999)
+    missing_value = get(data_var_attrs, "missingValue", MISSING_VALUE_INDICATOR)
     data = OnDiskArray(
         index.grib_path,
         shape,
@@ -501,6 +521,11 @@ end
 
 
 # TODO: Add filter_by_keys
+"""
+Build the `dimensions`, `variables`, `attributes`, and `encoding` making up a
+[`DataSet`](@ref DataSet) from a [`FileIndex`](@ref FileIndex), one variable
+per `paramId` in the index.
+"""
 function build_dataset_components(
     index::FileIndex;
     errors="warn",

@@ -1,53 +1,33 @@
 name: Tests
 
 on:
-  - push
-  - pull_request
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   tests:
     name: Julia ${{ matrix.version }} - ubuntu-latest
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.version == 'nightly' }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        version: [1.4, 1.5]
+        version: ['1.10', '1', 'nightly']
+    env:
+      #  Build PyCall against Conda.jl's python, the env runtests.jl installs
+      #  cfgrib into
+      PYTHON: ""
     steps:
-      - uses: actions/checkout@v2
-
-      - uses: julia-actions/setup-julia@d3ce119a16594ea9e5d7974813970c73b6ab9e94
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
-
-      - name: Build Package
-        env:
-          JULIA_PKG_SERVER: ""
-        run: |
-          #  The actions are written directly to allow for nekost/act local runs
-          #  https://github.com/julia-actions/julia-buildpkg
-          julia --color=yes -e 'using Pkg; VERSION >= v"1.5-" && !isdir(joinpath(DEPOT_PATH[1], "registries", "General")) && Pkg.Registry.add("General")'
-          julia --color=yes --project -e 'using Pkg; if VERSION >= v"1.1.0-rc1"; Pkg.build(verbose=true); else Pkg.build(); end'
-          julia --color=yes --project -e 'using Pkg; Pkg.add("Conda"); Pkg.add("PyCall"); using Conda; ENV["PYTHON"] = Conda.PYTHONDIR; Pkg.build("PyCall")'
-
-      - name: Run Tests
-        env:
-          JULIA_PKG_SERVER: ""
-        run: |
-          #  https://github.com/julia-actions/julia-runtest
-          julia --color=yes -e 'using Pkg; VERSION >= v"1.5-" && !isdir(joinpath(DEPOT_PATH[1], "registries", "General")) && Pkg.Registry.add("General")'
-          julia --color=yes --check-bounds=yes --inline=yes --depwarn=yes --project -e 'using Pkg; Pkg.test(coverage=true)'
-
-      - name: Process Coverage
-        run: |
-          #  https://github.com/julia-actions/julia-processcoverage
-          julia --color=yes -e '
-            using Pkg; Pkg.activate("coveragetempenv", shared=true)
-            Pkg.add(PackageSpec(name="CoverageTools"))
-            using CoverageTools
-            pf = process_folder()
-            LCOV.writefile("lcov.info", pf)
-          '
-
-      - uses: codecov/codecov-action@v1
+      - uses: julia-actions/cache@v2
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-runtest@v1
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v5
         with:
-          file: lcov.info
+          files: lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}

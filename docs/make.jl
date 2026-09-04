@@ -12,7 +12,10 @@ makedocs(
     doctest = false,
     pages = [
         "Home"    => "index.md",
-        "Manual"  => "man/guide.md",
+        "Manual"  => Any[
+            "In Depth Guide" => "man/guide.md",
+            "ECMWF Forecasts" => "man/ecmwf-forecasts.md",
+        ],
         "Library" => Any[
             # "Public" => "lib/public.md",
             "Internals" => map(

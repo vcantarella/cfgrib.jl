@@ -1,7 +1,3 @@
-```@meta
-Author = "Robert Rosca"
-```
-
 # [Dataset](@id lib_dataset)
 
 The dataset file contains the majority of the core code in CfGRIB.jl. It defines

@@ -1,5 +1,4 @@
 using DataStructures
-using DimensionalData
 
 import Base: getindex, keys, haskey, convert, show, IO, MIME
 
@@ -43,30 +42,4 @@ function Base.getproperty(obj::DimensionalArrayWrapper, key::Symbol)
     end
 end
 
-function Base.convert(
-    ::Type{DimensionalArrayWrapper},
-    dataset::CfGRIB.DataSet
-)::DimensionalArrayWrapper
-    dimensions = dataset.dimensions
-    attributes = dataset.attributes
-    encoding = dataset.encoding
-
-    multidimensional_idx =  (
-        [size(v.data) for v in values(dataset.variables)]
-        .|> length
-        .|> x -> x > 1)
-    multidimensional_keys = collect(keys(dataset.variables))[multidimensional_idx]
-    multidimensional_values = [dataset.variables[k] for k in multidimensional_keys]
-
-    shared_dimensions = [dataset.variables[k] for k in keys(dataset.dimensions)]
-    shared_axis = [Dim{Symbol(k)}(dataset.variables[k].data) for k in keys(dataset.dimensions)]
-
-    datasets = NamedTuple{Tuple(Symbol.(multidimensional_keys))}((
-        DimensionalArray(CfGRIB.convert(Array, dataset.variables[k].data), Tuple(shared_axis))
-        for k in multidimensional_keys
-    ))
-
-    return DimensionalArrayWrapper(dimensions, datasets, attributes, encoding)
-end
-
-convert(::Type{DimensionalArray}, dataset::DataSet) = convert(DimensionalArrayWrapper, dataset)::DimensionalArrayWrapper
+#  `convert(DimensionalArrayWrapper, ::DataSet)` lives in ext/CfGRIBDimensionalDataExt.jl

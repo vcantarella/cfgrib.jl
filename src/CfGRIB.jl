@@ -3,7 +3,7 @@ $(README)
 """
 module CfGRIB
 
-const cfgrib_jl_version = "0.0.0"
+const cfgrib_jl_version = "0.1.0"
 
 using DocStringExtensions
 

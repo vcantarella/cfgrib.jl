@@ -1,7 +1,3 @@
-```@meta
-Author = "Robert Rosca"
-```
-
 # [Constants](@id lib_constants)
 
 Constants contains a number of constant arrays and dictionaries used to define

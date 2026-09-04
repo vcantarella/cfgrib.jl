@@ -9,6 +9,14 @@ using Test
 # Conda.add_channel("conda-forge")
 # Conda.add("cfgrib")
 
+#  Two copies of ecCodes in one process (conda python's and GRIB.jl's
+#  eccodes_jll) segfault, so force python's bindings to load the same library
+#  GRIB.jl uses. Must be set before the first eccodes-related pyimport.
+ENV["ECCODES_PYTHON_USE_FINDLIBS"] = "1"
+ENV["FINDLIBS_DISABLE_PACKAGE"] = "yes"
+ENV["FINDLIBS_DISABLE_PYTHON"] = "yes"
+ENV["ECCODES_HOME"] = dirname(dirname(CfGRIB.GRIB.eccodes))
+
 using PyCall
 
 
@@ -40,6 +48,7 @@ using PyCall
         @test res.variables["step"].data == 0 #  In python this is a float
         @test res.variables["step"].attributes == Dict(
             "units" => "hours",
+            "dtype" => "timedelta64[ns]",
             "long_name" => "time since forecast_reference_time",
             "standard_name" => "forecast_period"
         )
@@ -108,10 +117,8 @@ using PyCall
         )
         @test typeof(res.variables["z"].data) == CfGRIB.OnDiskArray
         @test size(res.variables["z"].data) == (10, 4, 2, 120, 61)
-        @test_broken res.variables["z"].missing_value == 9999
-        #  Currently these are not `OrderedDict`, and in the wrong order
-        #  TODO: Make these into 'OrderedDict', and order correctly
-        @test_broken typeof(res.variables["z"].attributes) == OrderedDict
+        @test res.variables["z"].data.missing_value == CfGRIB.MISSING_VALUE_INDICATOR
+        @test res.variables["z"].attributes isa OrderedDict
         @test res.variables["z"].attributes == OrderedDict(
             "GRIB_paramId"                            => 129,
             "GRIB_shortName"                          => "z",
@@ -120,7 +127,8 @@ using PyCall
             "GRIB_cfName"                             => "geopotential",
             "GRIB_cfVarName"                          => "z",
             "GRIB_dataType"                           => "an",
-            "GRIB_missingValue"                       => 9999,
+            "GRIB_missingValue"                       => CfGRIB.MISSING_VALUE_INDICATOR,
+            "GRIB_uvRelativeToGrid"                   => 0,
             "GRIB_numberOfPoints"                     => 7320,
             "GRIB_totalNumber"                        => 10,
             "GRIB_typeOfLevel"                        => "isobaricInhPa",
@@ -183,9 +191,8 @@ using PyCall
         )
         @test typeof(res.variables["t"].data) == CfGRIB.OnDiskArray
         @test size(res.variables["t"].data) == (10, 4, 2, 120, 61)
-        @test_broken res.variables["t"].missing_value == 9999
-        #  TODO: Make these into 'OrderedDict', and order correctly
-        @test_broken typeof(res.variables["t"].attributes) == OrderedDict
+        @test res.variables["t"].data.missing_value == CfGRIB.MISSING_VALUE_INDICATOR
+        @test res.variables["t"].attributes isa OrderedDict
         @test res.variables["t"].attributes == OrderedDict(
             "GRIB_paramId"                            => 130,
             "GRIB_shortName"                          => "t",
@@ -194,7 +201,8 @@ using PyCall
             "GRIB_cfName"                             => "air_temperature",
             "GRIB_cfVarName"                          => "t",
             "GRIB_dataType"                           => "an",
-            "GRIB_missingValue"                       => 9999,
+            "GRIB_missingValue"                       => CfGRIB.MISSING_VALUE_INDICATOR,
+            "GRIB_uvRelativeToGrid"                   => 0,
             "GRIB_numberOfPoints"                     => 7320,
             "GRIB_totalNumber"                        => 10,
             "GRIB_typeOfLevel"                        => "isobaricInhPa",

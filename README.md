@@ -69,6 +69,10 @@ Finally exit pkg mode by pressing backspace, and use the package as usual:
 using CfGRIB
 ```
 
+The [documentation](https://ecmwf.github.io/cfgrib.jl/dev/) has an in-depth
+guide to the package and a worked example of downloading and processing ECMWF
+open-data forecasts.
+
 ## Development and Contribution
 To install the package for development you can run:
 

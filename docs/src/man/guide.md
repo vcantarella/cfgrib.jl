@@ -2,8 +2,8 @@
 This is a start guide for how the internals of CfGRIB.jl work, targeted
 towards advanced users or those who want to work with the internals of the code.
 
-If you want a quick guide on how to use the package then check the [`Quick Start
-Guide`](@ref)
+If you want a quick guide on how to use the package then check the [Quick Start
+Guide](../index.md)
 
 ## Internals
 The package internals are covered in the library section of the documentation in
@@ -31,7 +31,7 @@ First, we can look at the docstring for the `FileIndex` constructor by typing in
 `?` at the REPL to enter `help` mode, then type in `CfGRIB.FileIndex`, press
 enter, and we get the docstring:
 
-```@example 1
+```julia-repl
 help?> CfGRIB.FileIndex
   Summary
   ≡≡≡≡≡≡≡≡≡
@@ -118,7 +118,7 @@ Once the `FileIndex` has been created, the next step is to use it to create a
 [`DataSet`](@ref DataSet) object. The `DataSet` is what what you use to access
 the stored data. The docstring says:
 
-```@example 1
+```julia-repl
 help?> CfGRIB.DataSet
   Summary
   ≡≡≡≡≡≡≡≡≡
@@ -278,7 +278,7 @@ DataSet(build_dataset_components(
 )...)
 ```
 
-The call to [`build_dataset_components`](@ref) returns the dimensions,
+The call to [`build_dataset_components`](@ref CfGRIB.build_dataset_components) returns the dimensions,
 variables, attributes, and encoding read from a file. These four variables are
 then passed to the other relevant constructor defined at
 dev/CfGRIB/src/dataset.jl:127

@@ -84,6 +84,30 @@ expected_header_values = OrderedDict(
     CfGRIB.filter!(index, paramId=130)
 end
 
-#  Not implemented yet
-@test_broken CfGRIB.save_indexfile!(dfi)
-@test_broken CfGRIB.from_indexfile!(dfi)
+@testset "index file cache" begin
+    mktempdir() do dir
+        grib = joinpath(dir, "era5-levels-members.grib")
+        cp(joinpath(dir_testfiles, "era5-levels-members.grib"), grib)
+
+        #  First open scans the GRIB and writes the cache next to it
+        fresh = CfGRIB.FileIndex(grib, CfGRIB.ALL_KEYS)
+        @test isfile(fresh.index_path)
+
+        #  Second open comes from the cache and must be indistinguishable
+        cached = CfGRIB.FileIndex(grib, CfGRIB.ALL_KEYS)
+        @test isequal(cached.offsets, fresh.offsets)
+        @test cached.message_lengths == fresh.message_lengths
+        @test isequal(cached.header_values, fresh.header_values)
+
+        #  A changed GRIB invalidates the cache
+        open(io -> write(io, 0x00), grib, "a")
+        stale = CfGRIB.FileIndex()
+        stale.grib_path = grib
+        stale.index_keys = CfGRIB.ALL_KEYS
+        @test !CfGRIB.from_indexfile!(stale)
+
+        #  Garbage is ignored rather than fatal
+        write(fresh.index_path, "not an index")
+        @test !CfGRIB.from_indexfile!(stale)
+    end
+end

@@ -1,7 +1,3 @@
-```@meta
-Author = "Robert Rosca"
-```
-
 # [CFMessage](@id lib_cfmessage)
 
 CFMessage contains a number of utility functions for converting variables in a

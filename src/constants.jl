@@ -23,24 +23,36 @@ const GLOBAL_ATTRIBUTES_KEYS = [
 "`$(DATA_ATTRIBUTES_KEYS)`"
 const DATA_ATTRIBUTES_KEYS = [
     "paramId",
+    "dataType",
+    "numberOfPoints",
+    "typeOfLevel",
+    "stepUnits",
+    "stepType",
+    "gridType",
+    "uvRelativeToGrid",
+]
+
+#  Read from the first message of a variable instead of the index, values are
+#  not enforced to be unique and "unknown" values are kept (upstream cfgrib
+#  moved these out of DATA_ATTRIBUTES_KEYS)
+"`$(EXTRA_DATA_ATTRIBUTES_KEYS)`"
+const EXTRA_DATA_ATTRIBUTES_KEYS = [
     "shortName",
     "units",
     "name",
     "cfName",
     "cfVarName",
-    "dataType",
     "missingValue",
-    "numberOfPoints",
     "totalNumber",
     "numberOfDirections",
     "numberOfFrequencies",
-    "typeOfLevel",
     "NV",
-    "stepUnits",
-    "stepType",
-    "gridType",
     "gridDefinitionDescription",
 ]
+
+#  Value messages get their `missingValue` key set to, mirrors upstream
+#  cfgrib's MISSING_VAUE_INDICATOR (Float32 max)
+const MISSING_VALUE_INDICATOR = 3.4028234663852886e38
 
 "`$(GRID_TYPE_MAP)`"
 const GRID_TYPE_MAP = Dict(
@@ -82,13 +94,17 @@ const GRID_TYPE_MAP = Dict(
         "latitudeOfLastGridPointInDegrees",
     ],
     "regular_gg" => [
-        "Nx",
+        "N",
+        "Ni",
+        "Nj",
         "iDirectionIncrementInDegrees",
         "iScansNegatively",
+        "jScansPositively",
+        "jPointsAreConsecutive",
         "longitudeOfFirstGridPointInDegrees",
         "longitudeOfLastGridPointInDegrees",
-        "N",
-        "Ny",
+        "latitudeOfFirstGridPointInDegrees",
+        "latitudeOfLastGridPointInDegrees",
     ],
     "rotated_gg" => [
         "Nx",
@@ -233,6 +249,7 @@ const COORD_ATTRS = Dict(
         "units"            => "hours",
         "standard_name"    => "forecast_period",
         "long_name"        => "time since forecast_reference_time",
+        "dtype"            => "timedelta64[ns]",
     ),
     "time"                 => Dict(
         "units"            => "seconds since 1970-01-01T00:00:00",

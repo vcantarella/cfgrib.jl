@@ -1,7 +1,3 @@
-```@meta
-Author = "Robert Rosca"
-```
-
 # [Indexing](@id lib_indexing)
 
 [GRIB.jl](https://github.com/weech/GRIB.jl) is by CfGRIB to read the GRIB files,

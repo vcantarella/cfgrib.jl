@@ -1,7 +1,6 @@
 using DataStructures
-using AxisArrays
 
-import Base: getindex, keys, convert, show, IO, MIME
+import Base: getindex, keys, haskey, convert, show, IO, MIME
 
 
 """
@@ -43,30 +42,7 @@ function Base.getproperty(obj::AxisArrayWrapper, key::Symbol)
     end
 end
 
-function convert(::Type{AxisArrayWrapper}, dataset::DataSet)::AxisArrayWrapper
-    dimensions = dataset.dimensions
-    attributes = dataset.attributes
-    encoding = dataset.encoding
-
-    multidimensional_idx =  (
-        [size(v.data) for v in values(dataset.variables)]
-        .|> length
-        .|> x -> x > 1)
-    multidimensional_keys = collect(keys(dataset.variables))[multidimensional_idx]
-    multidimensional_values = [dataset.variables[k] for k in multidimensional_keys]
-
-    shared_dimensions = [dataset.variables[k] for k in keys(dataset.dimensions)]
-    shared_axis = [Axis{Symbol(k)}(dataset.variables[k].data) for k in keys(dataset.dimensions)]
-
-    datasets = NamedTuple{Tuple(Symbol.(multidimensional_keys))}((
-        AxisArray(CfGRIB.convert(Array, dataset.variables[k].data), shared_axis...)
-        for k in multidimensional_keys
-    ))
-
-    return AxisArrayWrapper(dimensions, datasets, attributes, encoding)
-end
-
-convert(::Type{AxisArray}, dataset::DataSet)::AxisArrayWrapper = convert(AxisArrayWrapper, dataset)
+#  `convert(AxisArrayWrapper, ::DataSet)` lives in ext/CfGRIBAxisArraysExt.jl
 
 function Base.show(io::IO, mime::MIME"text/plain", da::AxisArrayWrapper)
     dimensions_list = join(["$k: $v" for (k, v) in pairs(da.dimensions)], ", ")
