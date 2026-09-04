@@ -5,14 +5,11 @@ using AxisArrays
 using DimensionalData
 using FileIO
 
-import REPL
+using REPL: REPL
 
 test_file = joinpath(dir_testfiles, "era5-levels-members.grib")
 
-BACKENDS = [
-    CfGRIB.AxisArrayWrapper,
-    CfGRIB.DimensionalArrayWrapper,
-]
+BACKENDS = [CfGRIB.AxisArrayWrapper, CfGRIB.DimensionalArrayWrapper]
 
 #  Generic tests to see if required methods exist, and that they can at least be
 #  called without errors
@@ -22,13 +19,7 @@ BACKENDS = [
     #  Ought to provide convert as that dispatches on Type{backend}
     append!(backend_method_names, [m.name for m in methodswith(Type{backend})])
 
-    expected_methods = [
-        :getindex,
-        :getproperty,
-        :haskey,
-        :keys,
-        :convert,
-    ]
+    expected_methods = [:getindex, :getproperty, :haskey, :keys, :convert]
 
     @testset "expected $expected method" for expected in expected_methods
         @test expected in backend_method_names
@@ -73,7 +64,6 @@ end
         @test typeof(load(test_file, backend=backend)) == backend
     end
 end
-
 
 #  Backend specific tests are placed into their own files if required
 include("./backends/dimensionaldata.jl")

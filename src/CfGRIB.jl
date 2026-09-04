@@ -8,33 +8,30 @@ const cfgrib_jl_version = "0.1.0"
 using DocStringExtensions
 
 # Docstring template for types using DocStringExtensions
-@template TYPES =
-    """
-    # Summary
-    $(TYPEDEF)
+@template TYPES = """
+                  # Summary
+                  $(TYPEDEF)
 
-    $(DOCSTRING)
+                  $(DOCSTRING)
 
-    # Fields
+                  # Fields
 
-    $(TYPEDFIELDS)
+                  $(TYPEDFIELDS)
 
-    # Constructors
+                  # Constructors
 
-    $(METHODLIST)
-    """
+                  $(METHODLIST)
+                  """
 
-@template (FUNCTIONS, METHODS) =
-    """
-    $(TYPEDSIGNATURES)
-    $(DOCSTRING)
-    """
+@template (FUNCTIONS, METHODS) = """
+                                 $(TYPEDSIGNATURES)
+                                 $(DOCSTRING)
+                                 """
 
-@template (CONSTANT) =
-    """
-    $(TYPEDSIGNATURES)
-    $(DOCSTRING)
-    """
+@template (CONSTANT) = """
+                       $(TYPEDSIGNATURES)
+                       $(DOCSTRING)
+                       """
 
 include("constants.jl")
 include("cfmessage.jl")

@@ -2,7 +2,6 @@ using DataStructures
 
 import Base: getindex, keys, haskey, convert, show, IO, MIME
 
-
 """
 DimensionalData provides the equivalent of an xarray `DataArray`, this wrapper
 adds the functionality of an xarray `DataSet` by containing multiple
@@ -19,7 +18,7 @@ struct DimensionalArrayWrapper <: ArrayWrapper
     "Dictionary of `DimensionName::String => DimensionLength::Int`"
     dimensions::OrderedDict
     "Named tuple of `DatasetName::Symbol => Dataset::DimensionalArray`"
-    datasets::T where T <: NamedTuple
+    datasets::T where {T<:NamedTuple}
     "Dictionary of `AttributeName::String => AttributeValue::Any`"
     attributes::OrderedDict
     "Dictionary containing encoding information (usually `source`, `filter_by_keys`, and `ecode_cf`)"
@@ -27,7 +26,9 @@ struct DimensionalArrayWrapper <: ArrayWrapper
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    DimensionalArrayWrapper(dimensions, datasets, attributes, encoding) = new(dimensions, datasets, attributes, encoding)
+    function DimensionalArrayWrapper(dimensions, datasets, attributes, encoding)
+        return new(dimensions, datasets, attributes, encoding)
+    end
 end
 
 getindex(obj::DimensionalArrayWrapper, key) = getfield(obj, :datasets)[key]

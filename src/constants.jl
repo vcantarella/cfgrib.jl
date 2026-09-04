@@ -1,5 +1,3 @@
-import REPL
-
 # Very hacky way to get the pretty show output as a sting so that it can be
 # included in the docstrings automatically. This can definitely be done better
 # but I haven't looked it up much.
@@ -15,10 +13,7 @@ import REPL
 # end
 
 "`$(GLOBAL_ATTRIBUTES_KEYS)`"
-const GLOBAL_ATTRIBUTES_KEYS = [
-    "edition", "centre",
-    "centreDescription", "subCentre"
-]
+const GLOBAL_ATTRIBUTES_KEYS = ["edition", "centre", "centreDescription", "subCentre"]
 
 "`$(DATA_ATTRIBUTES_KEYS)`"
 const DATA_ATTRIBUTES_KEYS = [
@@ -157,9 +152,7 @@ const DATA_TIME_KEYS = ["dataDate", "dataTime", "endStep"]
 
 "`$(ALL_REF_TIME_KEYS)`"
 const ALL_REF_TIME_KEYS = [
-    "time", "step",
-    "valid_time", "verifying_time", "indexing_time",
-    "forecastMonth"
+    "time", "step", "valid_time", "verifying_time", "indexing_time", "forecastMonth"
 ]
 
 "`$(SPECTRA_KEYS)`"
@@ -167,113 +160,110 @@ const SPECTRA_KEYS = ["directionNumber", "frequencyNumber"]
 
 "`$(ALL_HEADER_DIMS)`"
 const ALL_HEADER_DIMS = vcat(
-    ENSEMBLE_KEYS,
-    VERTICAL_KEYS,
-    DATA_TIME_KEYS,
-    ALL_REF_TIME_KEYS,
-    SPECTRA_KEYS
+    ENSEMBLE_KEYS, VERTICAL_KEYS, DATA_TIME_KEYS, ALL_REF_TIME_KEYS, SPECTRA_KEYS
 )
 
 "`$(ALL_KEYS)`"
-const ALL_KEYS = sort(unique(vcat(
-    GLOBAL_ATTRIBUTES_KEYS, DATA_ATTRIBUTES_KEYS,
-    GRID_TYPE_KEYS, ALL_HEADER_DIMS
-)))
+const ALL_KEYS = sort(
+    unique(
+        vcat(GLOBAL_ATTRIBUTES_KEYS, DATA_ATTRIBUTES_KEYS, GRID_TYPE_KEYS, ALL_HEADER_DIMS)
+    ),
+)
 
 "`$(COORD_ATTRS)`"
 const COORD_ATTRS = Dict(
     # geography
-    "latitude"             => Dict(
-        "units"            => "degrees_north",
-        "standard_name"    => "latitude",
-        "long_name"        => "latitude"
+    "latitude" => Dict(
+        "units" => "degrees_north",
+        "standard_name" => "latitude",
+        "long_name" => "latitude",
     ),
-    "longitude"            => Dict(
-        "units"            => "degrees_east",
-        "standard_name"    => "longitude",
-        "long_name"        => "longitude"
+    "longitude" => Dict(
+        "units" => "degrees_east",
+        "standard_name" => "longitude",
+        "long_name" => "longitude",
     ),
     # vertical
-    "depthBelowLand"       => Dict(
-        "units"            => "m",
-        "positive"         => "down",
-        "long_name"        => "soil depth",
-        "standard_name"    => "depth",
+    "depthBelowLand" => Dict(
+        "units" => "m",
+        "positive" => "down",
+        "long_name" => "soil depth",
+        "standard_name" => "depth",
     ),
-    "depthBelowLandLayer"  => Dict(
-        "units"            => "m",
-        "positive"         => "down",
-        "long_name"        => "soil depth",
-        "standard_name"    => "depth",
+    "depthBelowLandLayer" => Dict(
+        "units" => "m",
+        "positive" => "down",
+        "long_name" => "soil depth",
+        "standard_name" => "depth",
     ),
-    "hybrid"               => Dict(
-        "units"            => "1",
-        "positive"         => "down",
-        "long_name"        => "hybrid level",
-        "standard_name"    => "atmosphere_hybrid_sigma_pressure_coordinate",
+    "hybrid" => Dict(
+        "units" => "1",
+        "positive" => "down",
+        "long_name" => "hybrid level",
+        "standard_name" => "atmosphere_hybrid_sigma_pressure_coordinate",
     ),
-    "heightAboveGround"    => Dict(
-        "units"            => "m",
-        "positive"         => "up",
-        "long_name"        => "height above the surface",
-        "standard_name"    => "height",
+    "heightAboveGround" => Dict(
+        "units" => "m",
+        "positive" => "up",
+        "long_name" => "height above the surface",
+        "standard_name" => "height",
     ),
-    "isobaricInhPa"        => Dict(
-        "units"            => "hPa",
-        "positive"         => "down",
+    "isobaricInhPa" => Dict(
+        "units" => "hPa",
+        "positive" => "down",
         "stored_direction" => "decreasing",
-        "standard_name"    => "air_pressure",
-        "long_name"        => "pressure",
+        "standard_name" => "air_pressure",
+        "long_name" => "pressure",
     ),
-    "isobaricInPa"         => Dict(
-        "units"            => "Pa",
-        "positive"         => "down",
+    "isobaricInPa" => Dict(
+        "units" => "Pa",
+        "positive" => "down",
         "stored_direction" => "decreasing",
-        "standard_name"    => "air_pressure",
-        "long_name"        => "pressure",
+        "standard_name" => "air_pressure",
+        "long_name" => "pressure",
     ),
-    "isobaricLayer"        => Dict(
-        "units"            => "Pa",
-        "positive"         => "down",
-        "standard_name"    => "air_pressure",
-        "long_name"        => "pressure",
+    "isobaricLayer" => Dict(
+        "units" => "Pa",
+        "positive" => "down",
+        "standard_name" => "air_pressure",
+        "long_name" => "pressure",
     ),
     # ensemble
-    "number"               => Dict(
-        "units"            => "1",
-        "standard_name"    => "realization",
-        "long_name"        => "ensemble member numerical id",
+    "number" => Dict(
+        "units" => "1",
+        "standard_name" => "realization",
+        "long_name" => "ensemble member numerical id",
     ),
     # time
-    "step"                 => Dict(
-        "units"            => "hours",
-        "standard_name"    => "forecast_period",
-        "long_name"        => "time since forecast_reference_time",
-        "dtype"            => "timedelta64[ns]",
+    "step" => Dict(
+        "units" => "hours",
+        "standard_name" => "forecast_period",
+        "long_name" => "time since forecast_reference_time",
+        "dtype" => "timedelta64[ns]",
     ),
-    "time"                 => Dict(
-        "units"            => "seconds since 1970-01-01T00:00:00",
-        "calendar"         => "proleptic_gregorian",
-        "standard_name"    => "forecast_reference_time",
-        "long_name"        => "initial time of forecast",
+    "time" => Dict(
+        "units" => "seconds since 1970-01-01T00:00:00",
+        "calendar" => "proleptic_gregorian",
+        "standard_name" => "forecast_reference_time",
+        "long_name" => "initial time of forecast",
     ),
-    "indexing_time"        => Dict(
-        "units"            => "seconds since 1970-01-01T00:00:00",
-        "calendar"         => "proleptic_gregorian",
-        "standard_name"    => "forecast_reference_time",
-        "long_name"        => "nominal initial time of forecast",
+    "indexing_time" => Dict(
+        "units" => "seconds since 1970-01-01T00:00:00",
+        "calendar" => "proleptic_gregorian",
+        "standard_name" => "forecast_reference_time",
+        "long_name" => "nominal initial time of forecast",
     ),
-    "valid_time"           => Dict(
-        "units"            => "seconds since 1970-01-01T00:00:00",
-        "calendar"         => "proleptic_gregorian",
-        "standard_name"    => "time",
-        "long_name"        => "time",
+    "valid_time" => Dict(
+        "units" => "seconds since 1970-01-01T00:00:00",
+        "calendar" => "proleptic_gregorian",
+        "standard_name" => "time",
+        "long_name" => "time",
     ),
-    "verifying_time"       => Dict(
-        "units"            => "seconds since 1970-01-01T00:00:00",
-        "calendar"         => "proleptic_gregorian",
-        "standard_name"    => "time",
-        "long_name"        => "time",
+    "verifying_time" => Dict(
+        "units" => "seconds since 1970-01-01T00:00:00",
+        "calendar" => "proleptic_gregorian",
+        "standard_name" => "time",
+        "long_name" => "time",
     ),
 )
 
@@ -282,9 +272,5 @@ const GRID_TYPES_DIMENSION_COORDS = ["regular_ll", "regular_gg"]
 
 "`$(GRID_TYPES_2D_NON_DIMENSION_COORDS)`"
 const GRID_TYPES_2D_NON_DIMENSION_COORDS = [
-    "rotated_ll",
-    "rotated_gg",
-    "lambert",
-    "albers",
-    "polar_stereographic",
+    "rotated_ll", "rotated_gg", "lambert", "albers", "polar_stereographic"
 ]

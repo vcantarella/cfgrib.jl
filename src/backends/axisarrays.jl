@@ -2,7 +2,6 @@ using DataStructures
 
 import Base: getindex, keys, haskey, convert, show, IO, MIME
 
-
 """
 AxisArrays provides the equivalent of an xarray `DataArray`, this wrapper
 adds the functionality of an xarray `DataSet` by containing multiple
@@ -19,7 +18,7 @@ struct AxisArrayWrapper <: ArrayWrapper
     "Dictionary of `DimensionName::String => DimensionLength::Int`"
     dimensions::OrderedDict
     "Named tuple of `DatasetName::Symbol => Dataset::AxisArray`"
-    datasets::T where T <: NamedTuple
+    datasets::T where {T<:NamedTuple}
     "Dictionary of `AttributeName::String => AttributeValue::Any`"
     attributes::OrderedDict
     "Dictionary containing encoding information (usually `source`, `filter_by_keys`, and `ecode_cf`)"
@@ -27,7 +26,9 @@ struct AxisArrayWrapper <: ArrayWrapper
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    AxisArrayWrapper(dimensions, datasets, attributes, encoding) = new(dimensions, datasets, attributes, encoding)
+    function AxisArrayWrapper(dimensions, datasets, attributes, encoding)
+        return new(dimensions, datasets, attributes, encoding)
+    end
 end
 
 getindex(obj::AxisArrayWrapper, key) = getfield(obj, :datasets)[key]
@@ -49,7 +50,7 @@ function Base.show(io::IO, mime::MIME"text/plain", da::AxisArrayWrapper)
     str_dimensions = " Dimensions ($(length(da.dimensions))):\n  $dimensions_list"
 
     dataset_list = [summary(ds) for ds in da.datasets]
-    axes_list = split(dataset_list[1], "\n")[2:end - 1]
+    axes_list = split(dataset_list[1], "\n")[2:(end - 1)]
     axes_list = replace.(axes_list, "    " => "  ")
     #  When arrays are printed their length is limited by the current displaysize
     #  so adding text before/after will make the text overflow to the next line
@@ -81,9 +82,8 @@ function Base.show(io::IO, mime::MIME"text/plain", da::AxisArrayWrapper)
 
     dataset_data = [split(dl, "\n")[end] for dl in dataset_list]
     dataset_data = [
-        "   " * replace(s, "And data, a" => string(keys(da.datasets)[i]) * ",")
-        for (i, s)
-        in enumerate(dataset_data)
+        "   " * replace(s, "And data, a" => string(keys(da.datasets)[i]) * ",") for
+        (i, s) in enumerate(dataset_data)
     ]
     dataset_variables = join(dataset_data, "\n")
 
@@ -95,5 +95,5 @@ function Base.show(io::IO, mime::MIME"text/plain", da::AxisArrayWrapper)
 
     println(str_show)
     print(" Attributes: ")
-    show(io, mime, da.attributes)
+    return show(io, mime, da.attributes)
 end

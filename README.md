@@ -1,15 +1,12 @@
 # CfGRIB.jl
 
 [![lifecycle](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
-[![latest release](https://img.shields.io/github/release/ecmwf/CfGRIB.jl.svg)](https://github.com/ecmwf/cfgrib.jl/releases/latest)
-[![Apache 2 license](https://img.shields.io/github/license/ecmwf/CfGRIB.jl)](https://github.com/ecmwf/cfgrib.jl/blob/master/LICENSE)
-
-[![Build Status](https://github.com/ecmwf/cfgrib.jl/workflows/Tests/badge.svg)](https://github.com/ecmwf/cfgrib.jl/actions?query=workflow%3ATests)
-[![Build Status](https://github.com/ecmwf/cfgrib.jl/workflows/Nightly/badge.svg)](https://github.com/ecmwf/cfgrib.jl/actions?query=workflow%3ANightly)
-[![Codecov](https://codecov.io/gh/ecmwf/CfGRIB.jl/branch/dev/graph/badge.svg)](https://codecov.io/gh/ecmwf/CfGRIB.jl)
-
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://ecmwf.github.io/cfgrib.jl/dev/)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+[![Apache 2 license](https://img.shields.io/github/license/vcantarella/cfgrib.jl)](https://github.com/vcantarella/cfgrib.jl/blob/dev/LICENSE)
+[![Tests](https://github.com/vcantarella/cfgrib.jl/actions/workflows/Tests.yml/badge.svg)](https://github.com/vcantarella/cfgrib.jl/actions/workflows/Tests.yml)
+[![Documentation](https://github.com/vcantarella/cfgrib.jl/actions/workflows/Docs.yml/badge.svg)](https://github.com/vcantarella/cfgrib.jl/actions/workflows/Docs.yml)
+[![Codecov](https://codecov.io/gh/vcantarella/cfgrib.jl/branch/dev/graph/badge.svg)](https://codecov.io/gh/vcantarella/cfgrib.jl)
+[![docs](https://img.shields.io/badge/docs-dev-blue.svg)](https://vcantarella.github.io/cfgrib.jl/dev/)
+[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/JuliaDiff/BlueStyle)
 
 ## Description
 CfGRIB.jl is a julia interface to map GRIB files to the [Unidata's Common Data
@@ -31,66 +28,60 @@ Currently two array backends are supported:
 - [`AxisArrays`](https://github.com/JuliaArrays/AxisArrays.jl)
 - [`DimensionalData`](https://github.com/rafaqz/DimensionalData.jl)
 
-If a backend is found to be installed then its functionality will automatically
-be enabled, otherwise only the built-in bare data types will be returned.
+Load either package alongside CfGRIB.jl and the matching backend switches on
+(they are package extensions), otherwise only the built-in bare data types are
+returned.
 
 Low level access and decoding is performed by calling
 [GRIB.jl](https://github.com/weech/GRIB.jl) which itself calls the
 [ECMWF ecCodes library](https://software.ecmwf.int/wiki/display/ECC/).
 
+CfGRIB.jl started at ECMWF as [ecmwf/cfgrib.jl](https://github.com/ecmwf/cfgrib.jl),
+written by Robert Rosca. This repository continues that work.
+
 ## Installation
-The package is currently under heavy development so it has not been added to the
-Julia package registry yet. To install the package first clone this repository:
-
-```shell
-git clone https://github.com/ecmwf/cfgrib.jl/
-cd CfGRIB.jl
-```
-
-Then start Julia, enter the
-[pkg mode](https://docs.julialang.org/en/v1/stdlib/Pkg/), activate the
-[project](https://julialang.github.io/Pkg.jl/stable/environments/) (projects are
-similar to python `venv`'s), install the GRIB.jl package (as it is also not on
-the registry), and then finally you can instantiate CfGRIB.jl to get the rest of
-the dependencies:
+The package is not on the Julia registry yet, so install it straight from
+GitHub. GRIB.jl and the ecCodes library come along automatically:
 
 ```julia
-#  Activate the current directory as a project
-activate .
-#  To enable backend support
-add AxisArrays
-add DimensionalData
-instantiate
+] add https://github.com/vcantarella/cfgrib.jl
 ```
 
-Finally exit pkg mode by pressing backspace, and use the package as usual:
+For a named-array backend add one of the supported packages as well:
 
 ```julia
-using CfGRIB
+] add DimensionalData   # or AxisArrays
 ```
 
-The [documentation](https://ecmwf.github.io/cfgrib.jl/dev/) has an in-depth
-guide to the package and a worked example of downloading and processing ECMWF
-open-data forecasts.
+Then:
+
+```julia
+using CfGRIB, DimensionalData
+
+ds = DataSet("forecast.grib")
+da = convert(CfGRIB.DimensionalArrayWrapper, ds)
+```
+
+The [documentation](https://vcantarella.github.io/cfgrib.jl/dev/) has an
+in-depth guide to the package and a worked example of downloading and
+processing ECMWF open-data forecasts.
 
 ## Development and Contribution
-To install the package for development you can run:
+Clone the repository and run the tests from its project:
 
 ```shell
-git clone https://github.com/ecmwf/cfgrib.jl/
-cd CfGRIB.jl
+git clone https://github.com/vcantarella/cfgrib.jl
+cd cfgrib.jl
+julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.test()'
 ```
 
-Then in Julia:
+The parity tests compare against Python's cfgrib, which the test suite installs
+into a Conda environment on first run.
 
-```julia
-] activate .
-] develop .
+Code follows the [Blue style](https://github.com/JuliaDiff/BlueStyle) and CI
+checks it with [JuliaFormatter](https://github.com/domluna/JuliaFormatter.jl).
+Format before committing with:
+
+```shell
+julia -e 'using JuliaFormatter; format(".")'
 ```
-
-Will install the package as a development package. When you run `] test` the
-tests will run locally. If you want to run the tests within a container similar
-to the ones used when the CI runs via GitHub, then install
-[nektos/act](https://github.com/nektos/act) and run the command
-`act -P ubuntu-latest=nektos/act-environments-ubuntu:18.04 -j tests`, this will
-set up a docker container and run the full test suite within it.

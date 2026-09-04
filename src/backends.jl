@@ -1,6 +1,5 @@
 using FileIO
 
-
 const BACKEND_PROVIDERS = [:AxisArrays, :DimensionalData]
 #  Filled in by the package extensions in `ext/` when one of the
 #  `BACKEND_PROVIDERS` packages is loaded alongside CfGRIB. Last loaded wins.
@@ -40,10 +39,9 @@ include("./backends/axisarrays.jl")
 
 #  Fallback hit when the backend package has not been loaded, so the extension
 #  providing the real `convert` method is not active
-Base.convert(::Type{T}, ::DataSet) where {T<:ArrayWrapper} = error(
-    "$T is not available, `using` one of $BACKEND_PROVIDERS activates it"
-)
-
+function Base.convert(::Type{T}, ::DataSet) where {T<:ArrayWrapper}
+    return error("$T is not available, `using` one of $BACKEND_PROVIDERS activates it")
+end
 
 function fileio_load(f::File{format"GRIB"}; backend=DEFAULT_BACKEND[], kwargs...)
     """ Load command for FileIO integration. Following line must be in the

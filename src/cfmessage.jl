@@ -1,7 +1,6 @@
 using Dates
 using GRIB
 
-
 """
     $(typeof(GRIB_STEP_UNITS_TO_SECONDS))
 
@@ -44,11 +43,7 @@ $(METHODLIST)
 function from_grib_date_time end
 
 ""
-function from_grib_date_time(
-    date::Int,
-    time::Int;
-    epoch::DateTime=DEFAULT_EPOCH
-)::Int
+function from_grib_date_time(date::Int, time::Int; epoch::DateTime=DEFAULT_EPOCH)::Int
     hour = time ÷ 100
     minute = time % 100
     year = date ÷ 10000
@@ -68,7 +63,7 @@ function from_grib_date_time(
     message::GRIB.Message;
     date_key="dataDate",
     time_key="dataTime",
-    epoch::DateTime=DEFAULT_EPOCH
+    epoch::DateTime=DEFAULT_EPOCH,
 )::Union{Int,Missing}
     if !haskey(message, date_key) || !haskey(message, time_key)
         return missing
@@ -77,11 +72,11 @@ function from_grib_date_time(
     date = message[date_key]
     time = message[time_key]
 
-    return from_grib_date_time(date, time, epoch=epoch)
+    return from_grib_date_time(date, time; epoch=epoch)
 end
 
 function to_grib_date_time(args...; kwargs...)
-    throw(ErrorException("Unimplemented"))
+    return throw(ErrorException("Unimplemented"))
 end
 
 """
@@ -91,9 +86,7 @@ Uses [`GRIB_STEP_UNITS_TO_SECONDS`](@ref GRIB_STEP_UNITS_TO_SECONDS) to convert
 the step values to seconds, then divides by `3600.0` to get hours.
 """
 function from_grib_step(
-    message::GRIB.Message,
-    step_key::String="endStep",
-    step_unit_key::String="stepUnits"
+    message::GRIB.Message, step_key::String="endStep", step_unit_key::String="stepUnits"
 )::Float64
     #  +1 as Julia is 1-indexed not 0
     to_seconds = GRIB_STEP_UNITS_TO_SECONDS[message[step_unit_key] + 1]
@@ -101,7 +94,7 @@ function from_grib_step(
 end
 
 function to_grib_step(args...; kwargs...)
-    throw(ErrorException("Unimplemented"))
+    return throw(ErrorException("Unimplemented"))
 end
 
 """
@@ -111,7 +104,7 @@ GRIB message.
 function from_grib_month(
     message::GRIB.Message,
     verifying_month_key::String="verifyingMonth",
-    epoch::DateTime=DEFAULT_EPOCH
+    epoch::DateTime=DEFAULT_EPOCH,
 )::Union{Int,Missing}
     if !haskey(message, verifying_month_key)
         return missing
@@ -136,9 +129,7 @@ julia> CfGRIB.build_valid_time(10, 10)
 ((), 36010)
 ```
 """
-function build_valid_time(
-    time::Int, step::Int
-)::Tuple{Tuple{},Int64}
+function build_valid_time(time::Int, step::Int)::Tuple{Tuple{},Int64}
     step_s = step * 3600
 
     data = time + step_s
@@ -194,10 +185,7 @@ julia> CfGRIB.build_valid_time([10], [10])
 """
 function build_valid_time(
     time::Array{Int,1}, step::Array{Int,1}
-)::Union{
-    Tuple{Tuple{},Int64},
-    Tuple{Tuple{String,String},Array{Int64,2}}
-}
+)::Union{Tuple{Tuple{},Int64},Tuple{Tuple{String,String},Array{Int64,2}}}
     step_s = step * 3600
 
     if length(time) == 1 && length(step) == 1
@@ -240,7 +228,7 @@ A GRIB message containing `20160501` as the date key and `0` as the time key
 would end up calling:
 
 ```jldoctest
-julia> CfGRIB.COMPUTED_KEYS["time"](20160501, 0)
+julia> CfGRIB.COMPUTED_KEYS["time"][1](20160501, 0)
 1462060800
 ```
 """
@@ -249,11 +237,23 @@ COMPUTED_KEYS = Dict(
     #  TODO: Actually applying the from_grib_step function results in different
     #  values to cfgrib.py...?
     # "step" => (from_grib_step, to_grib_step),
-    "valid_time" => (message -> from_grib_date_time(message, date_key="validityDate", time_key="validityTime"),
-        message -> to_grib_date_time(message, date_key="validityDate", time_key="validityTime"),),
+    "valid_time" => (
+        message -> from_grib_date_time(
+            message; date_key="validityDate", time_key="validityTime"
+        ),
+        message -> to_grib_date_time(
+            message; date_key="validityDate", time_key="validityTime"
+        ),
+    ),
     "verifying_time" => (from_grib_month, m -> throw(ErrorException("Unimplemented"))),
-    "indexing_time" => (message -> from_grib_date_time(message, date_key="indexingDate", time_key="indexingTime"),
-        message -> to_grib_date_time(message, date_key="indexingDate", time_key="indexingTime"),),
+    "indexing_time" => (
+        message -> from_grib_date_time(
+            message; date_key="indexingDate", time_key="indexingTime"
+        ),
+        message -> to_grib_date_time(
+            message; date_key="indexingDate", time_key="indexingTime"
+        ),
+    ),
 )
 
 """

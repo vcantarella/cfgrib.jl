@@ -3,14 +3,11 @@ using DataStructures
 using Dates
 using JSON
 
-
 export DataSet
-
 
 struct DatasetBuildError <: Exception
     error_message::String
 end
-
 
 "Struct that contains metadata for an array, used to lazy-load the array from disk only when requested"
 struct OnDiskArray
@@ -24,8 +21,13 @@ struct OnDiskArray
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    OnDiskArray(grib_path, size, offsets, message_lengths, missing_value, geo_ndim, dtype) =
-        new(grib_path, size, offsets, message_lengths, missing_value, geo_ndim, dtype)
+    function OnDiskArray(
+        grib_path, size, offsets, message_lengths, missing_value, geo_ndim, dtype
+    )
+        return new(
+            grib_path, size, offsets, message_lengths, missing_value, geo_ndim, dtype
+        )
+    end
 end
 
 expand_key(key, shape) = Tuple((1:l)[k] for (k, l) in zip(key, shape))
@@ -35,7 +37,7 @@ Base.size(A::OnDiskArray) = A.size
 Base.axes(A::OnDiskArray) = Tuple(Base.OneTo(i) for i in size(A))
 Base.axes(A::OnDiskArray, d::Int) = axes(A)[d]
 
-function Base.convert(::Type{T}, A::OnDiskArray)::T where {T <: Array}
+function Base.convert(::Type{T}, A::OnDiskArray)::T where {T<:Array}
     res = A[repeat([Colon()], length(size(A)))...]
     return T(res)
 end
@@ -45,9 +47,9 @@ function Base.getindex(obj::OnDiskArray, key...)
     expanded_keys = expand_key(key, size(obj))
     #  Geography dims (e.g. lat, lon) are on the end and need to be loaded fully
     #  so only look at the other dimensions
-    header_items = expanded_keys[1:end-obj.geo_ndim]
+    header_items = expanded_keys[1:(end - obj.geo_ndim)]
     array_field_shape = (
-        (length(l) for l in header_items)..., size(obj)[end-obj.geo_ndim+1:end]...
+        (length(l) for l in header_items)..., size(obj)[(end - obj.geo_ndim + 1):end]...
     )
     array_field = Array{Union{Missing,obj.dtype}}(undef, array_field_shape...)
 
@@ -59,11 +61,11 @@ function Base.getindex(obj::OnDiskArray, key...)
             if length(header_indexes) == 0
                 array_field_indexes = ()
             else
-                array_field_indexes = collect(flatten([
-                    findall(it .== ix)
-                    for (it, ix)
-                    in zip(header_items, header_indexes)
-                ]))
+                array_field_indexes = collect(
+                    flatten([
+                        findall(it .== ix) for (it, ix) in zip(header_items, header_indexes)
+                    ]),
+                )
             end
 
             if length(array_field_indexes) != length(header_indexes)
@@ -94,7 +96,6 @@ function Base.getindex(obj::OnDiskArray, key...)
     return getindex(array_field, corrected_key...)
 end
 
-
 "Struct describing a cfgrib variable"
 Base.@kwdef struct Variable
     "Name of the dimension(s) contained in this variable"
@@ -108,7 +109,8 @@ Base.@kwdef struct Variable
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    Variable(dimensions, data, attributes) = new(dimensions, data, OrderedDict{String,Any}(attributes))
+    Variable(dimensions, data, attributes) =
+        new(dimensions, data, OrderedDict{String,Any}(attributes))
 end
 
 function Base.:(==)(a::Variable, b::Variable)
@@ -119,14 +121,13 @@ function Base.:(==)(a::Variable, b::Variable)
     return attributes && dimensions && data
 end
 
-
 "Maps a GRIB file to the NetCDF Common Data Model with CF Conventions."
 struct DataSet
     "`OrderedDict{String,Int}` of `\$DIMENSION_NAME => \$DIMENSION_LENGTH`."
     dimensions::OrderedDict{String,Int}
 
     "`OrderedDict{String,CfGRIB.Variable}` of `\$DIMENSION_NAME => \$DIMENSION_VARIABLE`, where the the variable is a [`Variable`](@ref Variable)."
-    variables::OrderedDict{String, Variable} # CfGRIB.Variable
+    variables::OrderedDict{String,Variable} # CfGRIB.Variable
 
     "`OrderedDict{String,Any}` containing some metadata extracted from the file."
     attributes::OrderedDict{String,Any}
@@ -136,8 +137,9 @@ struct DataSet
 
     #  Manually define inner constructor here so that it does not appear twice
     #  in the docs
-    DataSet(dimensions, variables, attributes, encoding) =
-        new(dimensions, variables, attributes, encoding)
+    function DataSet(dimensions, variables, attributes, encoding)
+        return new(dimensions, variables, attributes, encoding)
+    end
 end
 
 #  TODO: missing arguments:
@@ -156,31 +158,28 @@ function DataSet(
     index_keys = sort([ALL_KEYS..., read_keys...])
     index = FileIndex(path, index_keys) # filter_by_keys=filter_by_keys
 
-    return DataSet(build_dataset_components(
-        index;
-        errors=errors,
-        encode_cf=encode_cf,
-        squeeze=squeeze,
-        read_keys=read_keys,
-        time_dims=time_dims,
-    )...)
+    return DataSet(
+        build_dataset_components(
+            index;
+            errors=errors,
+            encode_cf=encode_cf,
+            squeeze=squeeze,
+            read_keys=read_keys,
+            time_dims=time_dims,
+        )...,
+    )
 end
-
 
 #  TODO: Implement filter_by_keys
 function enforce_unique_attributes(
-    header_values::OrderedDict{String,T} where {T <: Array},
-    attribute_keys::Array,
+    header_values::OrderedDict{String,T} where {T<:Array}, attribute_keys::Array
 )
     attributes = OrderedDict()
     for key in attribute_keys
         values = header_values[key]
 
         if length(values) > 1
-            throw(DatasetBuildError(
-                "Attributes are not unique for " *
-                "$key: $(values)"
-            ))
+            throw(DatasetBuildError("Attributes are not unique for " * "$key: $(values)"))
         end
 
         value = values[1]
@@ -193,22 +192,14 @@ function enforce_unique_attributes(
     return attributes
 end
 
-
 #  TODO: Implement filter_by_keys
 function enforce_unique_attributes(index::FileIndex, attribute_keys::Array)
-    attributes = enforce_unique_attributes(
-        index.header_values, attribute_keys
-    )
+    attributes = enforce_unique_attributes(index.header_values, attribute_keys)
 
     return attributes
 end
 
-
-function build_geography_coordinates(
-    index::FileIndex,
-    encode_cf::Tuple,
-    errors
-)
+function build_geography_coordinates(index::FileIndex, encode_cf::Tuple, errors)
     first_message = first(index)
     geo_coord_vars = OrderedDict()
     grid_type = CfGRIB.getone(index, "gridType")
@@ -227,7 +218,7 @@ function build_geography_coordinates(
             geo_shape = (getone(index, "Nx"), getone(index, "Ny"))
         end
         latitudes = first_message["distinctLatitudes"]
-        geo_coord_vars["latitude"] = Variable(
+        geo_coord_vars["latitude"] = Variable(;
             dimensions=("latitude",),
             data=latitudes,
             attributes=CfGRIB.COORD_ATTRS["latitude"],
@@ -237,7 +228,7 @@ function build_geography_coordinates(
             geo_coord_vars["latitude"].attributes["stored_direction"] = "decreasing"
         end
 
-        geo_coord_vars["longitude"] = Variable(
+        geo_coord_vars["longitude"] = Variable(;
             dimensions=("longitude",),
             data=first_message["distinctLongitudes"],
             attributes=CfGRIB.COORD_ATTRS["longitude"],
@@ -252,12 +243,12 @@ function build_geography_coordinates(
             geo_shape = (getone(index, "Nx"), getone(index, "Ny"))
         end
         try
-            geo_coord_vars["latitude"] = Variable(
+            geo_coord_vars["latitude"] = Variable(;
                 dimensions=geo_dims,
                 data=reshape(first_message["latitudes"], geo_shape),
                 attributes=COORD_ATTRS["latitude"],
             )
-            geo_coord_vars["longitude"] = Variable(
+            geo_coord_vars["longitude"] = Variable(;
                 dimensions=geo_dims,
                 data=reshape(first_message["longitudes"], geo_shape),
                 attributes=COORD_ATTRS["longitude"],
@@ -270,17 +261,13 @@ function build_geography_coordinates(
         geo_shape = (getone(index, "numberOfPoints"),)
         try
             latitude = first_message["latitudes"]
-            geo_coord_vars["latitude"] = Variable(
-                dimensions=("values",),
-                data=latitude,
-                attributes=COORD_ATTRS["latitude"],
+            geo_coord_vars["latitude"] = Variable(;
+                dimensions=("values",), data=latitude, attributes=COORD_ATTRS["latitude"]
             )
 
             longitude = first_message["longitudes"]
-            geo_coord_vars["longitude"] = Variable(
-                dimensions=("values",),
-                data=longitude,
-                attributes=COORD_ATTRS["longitude"],
+            geo_coord_vars["longitude"] = Variable(;
+                dimensions=("values",), data=longitude, attributes=COORD_ATTRS["longitude"]
             )
         catch e
             rethrow(e)
@@ -289,7 +276,6 @@ function build_geography_coordinates(
 
     return geo_dims, geo_shape, geo_coord_vars
 end
-
 
 function encode_cf_first(
     data_var_attrs::OrderedDict,
@@ -323,8 +309,7 @@ function encode_cf_first(
             append!(coords_map, time_dims)
         else
             throw(
-                "time_dims $(time_dims) is not a subset of " *
-                "$(CfGRIB.ALL_REF_TIME_KEYS)",
+                "time_dims $(time_dims) is not a subset of " * "$(CfGRIB.ALL_REF_TIME_KEYS)"
             )
         end
     else
@@ -336,7 +321,6 @@ function encode_cf_first(
 
     return coords_map
 end
-
 
 """
 Read `extra_keys` from the first message of the (filtered) index, keeping
@@ -357,7 +341,6 @@ function read_data_var_attrs(index::FileIndex, extra_keys)
 
     return attributes
 end
-
 
 #  TODO: Add filter_by_keys
 function build_variable_components(
@@ -398,17 +381,13 @@ function build_variable_components(
         end
 
         attributes = Dict(
-            "long_name" =>
-                "original GRIB coordinate for key: $(coord_key)($(coord_name))",
+            "long_name" => "original GRIB coordinate for key: $(coord_key)($(coord_name))",
             "units" => "1",
         )
 
         merge!(attributes, copy(get(CfGRIB.COORD_ATTRS, coord_name, Dict())))
 
-        data = sort(
-            values,
-            rev=get(attributes, "stored_direction", "none") == "decreasing"
-        )
+        data = sort(values; rev=get(attributes, "stored_direction", "none") == "decreasing")
         dimensions = (coord_name,)
 
         if squeeze && length(values) == 1
@@ -422,9 +401,7 @@ function build_variable_components(
     end
 
     header_dimensions = Tuple(
-        d for (d, c)
-        in pairs(coord_vars)
-        if !squeeze || length(c.data) > 1
+        d for (d, c) in pairs(coord_vars) if !squeeze || length(c.data) > 1
     )
     #  Loses information on which shape belongs to which dimension
     #  doesn't seem to matter though
@@ -467,31 +444,20 @@ function build_variable_components(
 
     if haskey(coord_vars, "time") && haskey(coord_vars, "step")
         # add the 'valid_time' secondary coordinate
-        dims, time_data = build_valid_time(
-            coord_vars["time"].data,
-            coord_vars["step"].data
-        )
+        dims, time_data = build_valid_time(coord_vars["time"].data, coord_vars["step"].data)
         attrs = CfGRIB.COORD_ATTRS["valid_time"]
         coord_vars["valid_time"] = Variable(dims, time_data, attrs)
     end
 
     data_var_attrs["coordinates"] = join(keys(coord_vars), " ")
     data_var = Variable(dimensions, data, data_var_attrs)
-    dims = OrderedDict(
-        (d => s)
-        for (d, s)
-        in zip(dimensions, size(data_var.data))
-    )
+    dims = OrderedDict((d => s) for (d, s) in zip(dimensions, size(data_var.data)))
 
     return dims, data_var, coord_vars
 end
 
-
 #  TODO: logging, filter_by_keys
-function build_dataset_attributes(
-    index::FileIndex,
-    encoding::Dict{String,Any}
-)
+function build_dataset_attributes(index::FileIndex, encoding::Dict{String,Any})
     attributes = enforce_unique_attributes(index, GLOBAL_ATTRIBUTES_KEYS)
     attributes["Conventions"] = "CF-1.7"
 
@@ -519,7 +485,6 @@ function build_dataset_attributes(
     return attributes
 end
 
-
 # TODO: Add filter_by_keys
 """
 Build the `dimensions`, `variables`, `attributes`, and `encoding` making up a
@@ -537,7 +502,7 @@ function build_dataset_components(
     dimensions = OrderedDict()
     variables = OrderedDict()
     for param_id in index["paramId"]
-        var_index = filter(index, paramId=param_id)
+        var_index = filter(index; paramId=param_id)
         dims, data_var, coord_vars = build_variable_components(
             var_index;
             encode_cf=encode_cf,

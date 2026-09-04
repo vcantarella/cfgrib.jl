@@ -10,7 +10,6 @@ DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 FileIO = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
 GRIB = "b16dfd50-4035-11e9-28d4-9dfe17e6779b"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
-REPL = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
@@ -25,6 +24,7 @@ CfGRIBDimensionalDataExt = "DimensionalData"
 [compat]
 AxisArrays = "0.4"
 DataStructures = "0.19"
+Dates = "1"
 DimensionalData = "0.30"
 DocStringExtensions = "0.9"
 FileIO = "1.20"
@@ -35,6 +35,7 @@ Serialization = "1"
 julia = "1.10"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 AxisArrays = "39de3d68-74b9-583c-8d2d-e117c070f3a9"
 Conda = "8f4d0f93-b110-5947-807f-2305c1781a2d"
 DimensionalData = "0703355e-b756-11e9-17c0-8b28908087d0"
@@ -45,4 +46,4 @@ REPL = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Conda", "PyCall", "AxisArrays", "DimensionalData", "InteractiveUtils"]
+test = ["Test", "Conda", "PyCall", "AxisArrays", "DimensionalData", "InteractiveUtils", "Aqua", "REPL"]

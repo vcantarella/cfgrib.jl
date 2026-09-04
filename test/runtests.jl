@@ -3,16 +3,13 @@ using Test
 using CfGRIB
 using Conda
 
-
 if !(haskey(Conda._installed_packages_dict(), "cfgrib"))
     Conda.add_channel("conda-forge")
     Conda.add("cfgrib")
 end
 
-
 const dir_tests = abspath(joinpath(dirname(pathof(CfGRIB)), "..", "test"))
 const dir_testfiles = abspath(joinpath(dir_tests, "sample-data"))
-
 
 @testset "CfGRIB.jl" begin
     @testset "Indexing" begin
@@ -33,5 +30,9 @@ const dir_testfiles = abspath(joinpath(dir_tests, "sample-data"))
 
     @testset "Backends" begin
         include("backends.jl")
+    end
+
+    @testset "Aqua" begin
+        include("aqua.jl")
     end
 end
