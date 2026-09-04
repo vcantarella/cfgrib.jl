@@ -23,7 +23,8 @@ jobs:
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
-      - uses: julia-actions/cache@v2
+      #  No depot cache: it restores Conda.jl/PyCall build state that points at a
+      #  conda env the cache never holds, and Conda precompilation then fails.
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
